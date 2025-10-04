@@ -1,14 +1,11 @@
 import Sprite = Phaser.Physics.Arcade.Sprite;
 import Body = Phaser.Physics.Arcade.Body;
+import TweenBuilderConfig = Phaser.Types.Tweens.TweenBuilderConfig;
 import {Scene} from "phaser";
 import {ORIENTATION} from "../consts.ts";
-import Tween = Phaser.Tweens.Tween;
-
 
 export class Actor extends Sprite {
 
-
-    protected tween: Tween | null = null;
     protected orientation = ORIENTATION.NORTH;
 
     constructor(
@@ -23,52 +20,63 @@ export class Actor extends Sprite {
         this.getBody().setCollideWorldBounds(true);
     }
 
-    public setOrientation(orientation: ORIENTATION): void {
-        if (this.tween && this.tween.isPlaying()) {
-            return;
+    public async setOrientation(orientation: ORIENTATION) {
+        if (this.orientation != orientation) {
+            let start = Math.PI / 2 * this.orientation
+            let end = Math.PI / 2 * orientation
+            if(this.orientation === 0 && orientation === 3) {
+                start += Math.PI * 2
+            } else if(this.orientation === 3 && orientation === 0) {
+                end += Math.PI * 2
+            }
+            console.log(start, end)
+            await this.tweensAsync({
+                targets: this,
+                duration: 200,
+                rotation: {
+                    from: start,
+                    to: end
+                },
+                repeat: 0,
+                yoyo: false
+            })
         }
-
         this.orientation = orientation;
-        this.setRotation(Math.PI / 2 * orientation)
     }
 
-    public moveForward(): void {
-        if (this.tween && this.tween.isPlaying()) {
-            return;
-        }
-
-        switch (this.orientation) {
+    public async move(distance: number, direction: ORIENTATION = this.orientation) {
+        switch (direction) {
             case ORIENTATION.NORTH:
-                this.tween = this.scene.tweens.add({
+                await this.tweensAsync({
                     targets: this,
-                    y: this.y - 16,
+                    y: this.y - 16 * distance,
                     duration: 200,
                     repeat: 0,
                     yoyo: false,
                 })
                 break;
             case ORIENTATION.SOUTH:
-                this.tween = this.scene.tweens.add({
+                await this.tweensAsync({
                     targets: this,
-                    y: this.y + 16,
+                    y: this.y + 16 * distance,
                     duration: 200,
                     repeat: 0,
                     yoyo: false,
                 });
                 break;
             case ORIENTATION.EAST:
-                this.tween = this.scene.tweens.add({
+                await this.tweensAsync({
                     targets: this,
-                    x: this.x + 16,
+                    x: this.x + 16 * distance,
                     duration: 200,
                     repeat: 0,
                     yoyo: false,
                 });
                 break;
             case ORIENTATION.WEST:
-                this.tween = this.scene.tweens.add({
+                await this.tweensAsync({
                     targets: this,
-                    x: this.x - 16,
+                    x: this.x - 16 * distance,
                     duration: 200,
                     repeat: 0,
                     yoyo: false,
@@ -79,6 +87,17 @@ export class Actor extends Sprite {
 
     protected getBody(): Body {
         return this.body as Body;
+    }
+
+    private tweensAsync = (config: TweenBuilderConfig): Promise<void> => {
+        return new Promise(resolve => {
+            this.scene.tweens.add({
+                ...config,
+                onComplete: () => {
+                    resolve()
+                }
+            })
+        })
     }
 
 }

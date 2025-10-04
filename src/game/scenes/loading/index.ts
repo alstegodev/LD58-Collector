@@ -8,8 +8,18 @@ export class LoadingScene extends Scene {
 
     preload(): void {
 
-        this.load.image('commandBoard', 'assets/commandBoard.png')
+        this.load.image(TEXTURES.COMMAND_BOARD, 'assets/commandBoard.png')
         this.load.image(TEXTURES.PLAYER, 'assets/player.png')
+
+        this.load.spritesheet(TEXTURES.CARDS, 'assets/cards.png', {
+            frameWidth: 96,
+            frameHeight: 32,
+        })
+
+        this.load.spritesheet(TEXTURES.BIG_RED_BUTTON, 'assets/bigRedButton-anim.png', {
+            frameWidth: 66,
+            frameHeight: 44,
+        })
 
         this.load.image({
             key: 'tiles',
