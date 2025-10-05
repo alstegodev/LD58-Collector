@@ -16,6 +16,10 @@ export class CommandBoard {
         }
     }
 
+    public getCommandSlots() {
+        return this.commandSlots
+    }
+
     public addCard(card: Card, index: number) {
         this.commandSlots[index].push(card)
         console.log(this.commandSlots)

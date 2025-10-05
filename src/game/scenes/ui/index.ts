@@ -3,6 +3,7 @@ import {EVENTS, GAMESTATUS, TEXTURES} from "../../consts.ts";
 import {CommandBoard} from "../../classes/commandBoard.ts";
 import {Card, Cards} from "../../classes/card.ts";
 import {Text} from "../../classes/text.ts";
+import {gameConfig} from "../../main.ts";
 import Tween = Phaser.Tweens.Tween;
 
 export class UIScene extends Scene {
@@ -19,7 +20,7 @@ export class UIScene extends Scene {
 
     private commandContainers: Phaser.GameObjects.Container[];
     private drawContainer!: Phaser.GameObjects.Container;
-    private cardTweens: Tween[] = []
+    private cardTweens: Tween[]
 
     constructor() {
         super('ui-scene');
@@ -32,25 +33,36 @@ export class UIScene extends Scene {
         this.initCommandBoard();
         this.initBigRedButton();
 
+        this.cardTweens = []
+
         this.score = 0;
-        this.scoreBoard = new Text(this, 550, 32, `Score: ${this.score}`).setFontSize(12)
+        this.scoreBoard = new Text(this, 550, 32, `Score: ${this.score}/${gameConfig.winScore}`).setFontSize(12)
         this.game.events.on(EVENTS.KILL, () => {
             console.log('catch KILL')
             this.score++;
-            this.scoreBoard.text = `Score: ${this.score}`
+            this.scoreBoard.text = `Score: ${this.score}/${gameConfig.winScore}`
+
+            if (this.score >= gameConfig.winScore) {
+                this.endGame(GAMESTATUS.WIN);
+            }
         })
 
-        this.health = 5;
+        this.health = gameConfig.startHealth;
         this.healthBoard = new Text(this, 210, 32, `Health: ${this.health}`).setFontSize(12)
         this.game.events.on(EVENTS.DAMAGE, () => {
             console.log('catch DAMAGE')
-            this.cameras.main.flash();
+            this.cameras.main.shake(200, 0.1);
             this.health--;
             this.healthBoard.text = `Health: ${this.health}`
-            if(this.health <= 0) {
+            if (this.health <= 0) {
                 this.endGame(GAMESTATUS.GAMEOVER);
             }
 
+        })
+
+        let resetButton = this.add.sprite(620, 340, TEXTURES.RESET).setOrigin(0).setInteractive()
+        resetButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this.restartGame()
         })
 
         this.drawContainer = this.add.container(208, 32, [])
@@ -58,7 +70,9 @@ export class UIScene extends Scene {
         this.drawCards()
 
         this.game.events.on(EVENTS.ALL_COMMANDS_EXECUTED, () => {
-            this.drawCards()
+            if (this.health > 0) {
+                this.drawCards()
+            }
         })
     }
 
@@ -78,9 +92,6 @@ export class UIScene extends Scene {
 
     private initBigRedButton() {
         this.bigRedButton = this.add.sprite(152, 320, TEXTURES.BIG_RED_BUTTON, 0).setInteractive()
-    }
-
-    private initListeners() {
         this.bigRedButton.anims.create({
             key: TEXTURES.BIG_RED_BUTTON,
             frameRate: 8,
@@ -89,6 +100,10 @@ export class UIScene extends Scene {
                 frames: [0, 3, 2, 1],
             }),
         })
+    }
+
+    private initListeners() {
+
         this.bigRedButton.anims.play(TEXTURES.BIG_RED_BUTTON)
 
         this.tweens.add({
@@ -104,10 +119,10 @@ export class UIScene extends Scene {
         })
 
         this.bigRedButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
-            this.commandBoard.executeCommandLine()
             this.bigRedButton.anims.stop()
             this.bigRedButton.off(Phaser.Input.Events.POINTER_DOWN)
             this.bigRedButton.setScale(1)
+            this.commandBoard.executeCommandLine()
         })
     }
 
@@ -118,17 +133,35 @@ export class UIScene extends Scene {
             fillAlpha: 0.8,
         })
 
+        let extraCard: boolean = this.commandBoard.getCommandSlots().some((slot) => {
+
+            if (slot.length > 0) {
+                return slot[slot.length - 1].cardData.frameIndex === 1
+            }
+            return false
+        })
+
         let testText = new Text(this, 20, 50, "Choose a Command Card to add to your Command Board")
             .setFontSize(16)
             .setWordWrapWidth(376)
             .setAlign('center')
         this.drawContainer.add(testText)
 
-        const positions = [
+
+        const positionWithExtraCard = [
             {x: 20, y: 200},
             {x: 148, y: 200},
             {x: 276, y: 200},
-        ];
+            {x: 148, y: 152},
+        ]
+
+        const positions =
+            extraCard ? positionWithExtraCard :
+                [
+                    {x: 20, y: 200},
+                    {x: 148, y: 200},
+                    {x: 276, y: 200},
+                ];
 
         this.createDragEvents()
 
@@ -162,6 +195,20 @@ export class UIScene extends Scene {
             this.cleanUpDrawCards()
         })
 
+        let hide = this.add.image(5, 270, TEXTURES.HIDE).setOrigin(0).setInteractive()
+        hide.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this.hideDrawContainer(true)
+        })
+
+        hide.on(Phaser.Input.Events.POINTER_OUT, () => {
+            this.hideDrawContainer(false)
+        })
+
+        hide.on(Phaser.Input.Events.POINTER_UP, () => {
+            this.hideDrawContainer(false)
+        })
+
+        this.drawContainer.add(hide)
         this.drawContainer.add(skip)
     }
 
@@ -268,6 +315,14 @@ export class UIScene extends Scene {
         this.initListeners()
     }
 
+    private hideDrawContainer(hide: boolean) {
+        if (hide) {
+            this.drawContainer.setVisible(false)
+        } else {
+            this.drawContainer.setVisible(true)
+        }
+    }
+
     private endGame(status: GAMESTATUS) {
         this.cameras.main.setBackgroundColor("rgba(0,0,0,0.6)");
         this.game.scene.pause("level-1-scene");
@@ -277,12 +332,12 @@ export class UIScene extends Scene {
             this.scene.get("level-1-scene").scale.height * 0.4,
             status === GAMESTATUS.GAMEOVER
                 ? `YOU DIED!\nCLICK TO RESTART`
-                : `YOU WON!\nCLICK TO RESTART`,
+                : `CONGRATULATION!\nYOU REALLY SHOWED\nTHEM WHO'S BOSS\n\nCLICK TO RESTART`,
         )
             .setAlign("center")
-            .setColor(status === GAMESTATUS.GAMEOVER ? "#ff0000" : "#ffffff")
+            .setColor(status === GAMESTATUS.GAMEOVER ? "#ff0000" : "#00ff00")
             .setFontSize(24)
-            .setW(200)
+            .setWordWrapWidth(350)
 
         gameEndPhrase.setPosition(
             (this.scene.get("level-1-scene").scale.width / 2 - gameEndPhrase.width / 2) + 100,
@@ -290,10 +345,16 @@ export class UIScene extends Scene {
         );
 
         this.input.on("pointerdown", () => {
-            this.game.events.removeAllListeners()
-            this.scene.get("level-1-scene").scene.stop();
-            this.scene.start("level-1-scene");
-            this.scene.restart();
+            this.restartGame();
         });
     };
+
+    private restartGame() {
+        this.game.events.removeAllListeners()
+        this.scene.
+
+        this.scene.get("level-1-scene").scene.stop();
+        this.scene.start("level-1-scene");
+        this.scene.restart();
+    }
 }

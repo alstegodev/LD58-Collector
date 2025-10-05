@@ -14,6 +14,11 @@ export enum TEXTURES {
     BIG_RED_BUTTON = 'bigRedButton',
     CHOOSE = 'choose',
     SKIP = 'skip',
+    CLICKTOSTART = 'clickToStart',
+    TITLE = 'title',
+    TUTORIAL = 'tutorial',
+    RESET = 'reset',
+    HIDE = 'hide',
 }
 
 export enum EVENTS {

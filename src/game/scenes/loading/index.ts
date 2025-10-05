@@ -13,6 +13,11 @@ export class LoadingScene extends Scene {
         this.load.image(TEXTURES.ENEMY, 'assets/enemy.png')
         this.load.image(TEXTURES.ATTACK, 'assets/attack.png')
         this.load.image(TEXTURES.SKIP, 'assets/skip.png')
+        this.load.image(TEXTURES.CLICKTOSTART, 'assets/clickToStart.png')
+        this.load.image(TEXTURES.TITLE, 'assets/title.png')
+        this.load.image(TEXTURES.TUTORIAL, 'assets/tutorial.png')
+        this.load.image(TEXTURES.RESET, 'assets/reset.png')
+        this.load.image(TEXTURES.HIDE, 'assets/hide.png')
 
         this.load.spritesheet(TEXTURES.CHOOSE, 'assets/direction-arrows.png', {
             frameWidth: 40,
@@ -41,7 +46,6 @@ export class LoadingScene extends Scene {
     }
 
     create(): void {
-        this.scene.start('level-1-scene');
-        this.scene.start('ui-scene');
+        this.scene.start('title');
     }
 }

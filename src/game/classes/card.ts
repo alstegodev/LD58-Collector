@@ -39,7 +39,7 @@ export const Cards: CardData[] = [
         color: 'green',
         exec: (power: number) => {
             return async (player: Player) => {
-                await player.selectAttack(power, 1)
+                await player.selectAttack(power, power)
             }
         }
     },
@@ -49,7 +49,7 @@ export const Cards: CardData[] = [
         color: 'blue',
         exec: (power: number) => {
             return async (player: Player) => {
-                await player.movePlayer(power)
+                await player.selectMove(power, true)
             }
         }
     },
@@ -91,7 +91,9 @@ export const Cards: CardData[] = [
         color: 'red',
         exec: (power: number) => {
             return async (player: Player) => {
+                let targets = [[0, 1], [0, -1], [1, 0], [-1, 0]]
                 await player.selectRotation(power)
+                await player.attack(targets)
             }
         }
     },
@@ -128,14 +130,10 @@ export const Cards: CardData[] = [
         color: 'yellow',
         exec: (power: number) => {
             return async (player: Player) => {
-                let targets = [
-                    [],
-                    [[1, 1], [-1, -1], [1, -1], [-1, 1]],
-                    [[1, 1], [-1, -1], [1, -1], [-1, 1], [2, 2], [-2, -2], [2, -2], [-2, 2]],
-                    [[1, 1], [-1, -1], [1, -1], [-1, 1], [2, 2], [-2, -2], [2, -2], [-2, 2], [3, 3], [-3, -3], [3, -3], [-3, 3]]
-                ]
+                let targets = [[1, 1], [-1, -1], [1, -1], [-1, 1]]
+
                 await player.selectRotation(power)
-                await player.attack(targets[power])
+                await player.attack(targets)
             }
         }
     },

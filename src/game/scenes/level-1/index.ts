@@ -79,11 +79,21 @@ export class Level1 extends Scene {
             })
             spawnPoint.play('tiles')
 
-            this.game.events.on(EVENTS.ALL_COMMANDS_EXECUTED, () => {
-                console.log('CATCH ALL_COMMANDS_EXECUTED')
+            this.physics.add.overlap(this.player, spawnPoint, (_obj1, obj2) => {
+                let index = this.enemySpawns.indexOf(spawnPoint)
+                this.enemySpawns.splice(index, 1)
+                obj2.destroy();
+                this.cameras.main.flash(250);
+                sleep(100).then(_r => this.game.events.emit(EVENTS.KILL))
+            });
+        });
+
+        this.game.events.on(EVENTS.ALL_COMMANDS_EXECUTED, () => {
+            console.log('CATCH ALL_COMMANDS_EXECUTED')
+            this.enemySpawns.forEach((spawnPoint) => {
                 this.spawnEnemy({x: spawnPoint.x, y: spawnPoint.y})
             })
-        });
+        })
     }
 
     private initCamera(): void {
@@ -106,10 +116,14 @@ export class Level1 extends Scene {
 
                     const stepForDir = (dir: ORIENTATION) => {
                         switch (dir) {
-                            case ORIENTATION.NORTH: return {dx: 0, dy: -16};
-                            case ORIENTATION.SOUTH: return {dx: 0, dy: 16};
-                            case ORIENTATION.EAST:  return {dx: 16, dy: 0};
-                            case ORIENTATION.WEST:  return {dx: -16, dy: 0};
+                            case ORIENTATION.NORTH:
+                                return {dx: 0, dy: -16};
+                            case ORIENTATION.SOUTH:
+                                return {dx: 0, dy: 16};
+                            case ORIENTATION.EAST:
+                                return {dx: 16, dy: 0};
+                            case ORIENTATION.WEST:
+                                return {dx: -16, dy: 0};
                         }
                     };
 
@@ -183,8 +197,10 @@ export class Level1 extends Scene {
                         this.scene.get("level-1-scene")
                         this.game.events.emit(EVENTS.DAMAGE);
                     }
+                    sleep(200).then(_r => {
+                        this.game.events.emit(EVENTS.ALL_COMMANDS_EXECUTED)
+                    })
 
-                    this.game.events.emit(EVENTS.ALL_COMMANDS_EXECUTED)
                 }
             )
         })
@@ -223,7 +239,7 @@ export class Level1 extends Scene {
             if (hitEnemies.length > 0) {
                 hitEnemies.sort(
                     (e1) => {
-                        return Phaser.Math.Distance.BetweenPoints({x: originX, y: originY}, {x: e1.x, y: e1.y})
+                        return -Phaser.Math.Distance.BetweenPoints({x: originX, y: originY}, {x: e1.x, y: e1.y})
                     }
                 )
                 const targetCount = Math.min(targets, hitEnemies.length);
@@ -311,8 +327,6 @@ export class Level1 extends Scene {
         if (pEnemy) {
             this.enemies = this.enemies.filter((enemy) => enemy.x != target.x || enemy.y != target.y)
             pEnemy.destroy()
-            console.log('emit KILL')
-            this.game.events.emit(EVENTS.KILL)
             return true
         }
         return false

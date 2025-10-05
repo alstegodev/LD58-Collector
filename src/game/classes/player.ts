@@ -58,22 +58,37 @@ export class Player extends Actor {
         await this.move(distance)
     }
 
-    public async selectMove(distance: number): Promise<void> {
+    public async selectMove(distance: number, back?: boolean = false): Promise<void> {
         return new Promise<void>((resolve) => {
-            this.scene.game.events.emit(EVENTS.GET_USER_INPUT, {
-                [this.orientation]: {
-                    texture: TEXTURES.PLAYER,
-                    value: this.orientation,
-                },
-                [(this.orientation + 1) % 4]: {
-                    texture: TEXTURES.PLAYER,
-                    value: 0
-                },
-                [(4 + this.orientation - 1) % 4]: {
-                    texture: TEXTURES.PLAYER,
-                    value: 1
-                }
-            })
+            if(back) {
+                this.scene.game.events.emit(EVENTS.GET_USER_INPUT, {
+                    [this.orientation]: {
+                        texture: TEXTURES.PLAYER,
+                        value: this.orientation,
+                    },
+                    [(this.orientation + 2) % 4]: {
+                        texture: TEXTURES.PLAYER,
+                        value: 0
+                    },
+                })
+            } else {
+                this.scene.game.events.emit(EVENTS.GET_USER_INPUT, {
+                    [this.orientation]: {
+                        texture: TEXTURES.PLAYER,
+                        value: this.orientation,
+                    },
+                    [(this.orientation + 1) % 4]: {
+                        texture: TEXTURES.PLAYER,
+                        value: 0
+                    },
+                    [(4 + this.orientation - 1) % 4]: {
+                        texture: TEXTURES.PLAYER,
+                        value: 1
+                    }
+                })
+            }
+
+
 
             const handleUserChoice = async (choice: number) => {
                 console.log('User choice: ', choice);
@@ -149,6 +164,7 @@ export class Player extends Actor {
     public async attackFrontal(targets: number): Promise<void> {
         console.log('EMIT FRONTAL_ATTACK')
         this.scene.game.events.emit(EVENTS.FRONTAL_ATTACK, this.orientation, targets);
+        this.scene.game.events.emit(EVENTS.FRONTAL_ATTACK, (2 + this.orientation) % 4, targets);
     }
 
     public async attack(targets: number[][]): Promise<void> {
