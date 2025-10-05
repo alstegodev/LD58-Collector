@@ -1,5 +1,5 @@
 import {Actor} from "./actor.ts";
-import {ORIENTATION, TEXTURES} from "../consts.ts";
+import {EVENTS, ORIENTATION, TEXTURES} from "../consts.ts";
 import {Player} from "./player.ts";
 
 export class Enemy extends Actor {
@@ -16,16 +16,16 @@ export class Enemy extends Actor {
     }
 
     async update() {
-        this.getBody().setVelocity(0);
+        // this.getBody().setVelocity(0);
     }
 
     public async moveToTarget() {
         const xDiff = Math.abs(this.target.x - this.x);
         const yDiff = Math.abs(this.target.y - this.y);
-        console.log(xDiff, yDiff)
 
         if(xDiff + yDiff <= 16) {
-            //TODO: Attack
+            console.log('EMIT DAMAGE')
+            this.scene.game.events.emit(EVENTS.DAMAGE)
             return;
         }
         if(xDiff > yDiff) {

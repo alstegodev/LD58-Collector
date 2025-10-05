@@ -1,5 +1,5 @@
 import Phaser, {Scene} from "phaser";
-import {EVENTS, TEXTURES} from "../../consts.ts";
+import {EVENTS, GAMESTATUS, TEXTURES} from "../../consts.ts";
 import {CommandBoard} from "../../classes/commandBoard.ts";
 import {Card, Cards} from "../../classes/card.ts";
 import {Text} from "../../classes/text.ts";
@@ -10,6 +10,12 @@ export class UIScene extends Scene {
     private commandBoard!: CommandBoard;
     private mainFilter!: Phaser.GameObjects.Rectangle;
     private bigRedButton!: Phaser.GameObjects.Sprite;
+
+    private score = 0;
+    private scoreBoard: Text;
+
+    private health = 5;
+    private healthBoard: Text;
 
     private commandContainers: Phaser.GameObjects.Container[];
     private drawContainer!: Phaser.GameObjects.Container;
@@ -26,6 +32,26 @@ export class UIScene extends Scene {
         this.initCommandBoard();
         this.initBigRedButton();
 
+        this.score = 0;
+        this.scoreBoard = new Text(this, 550, 32, `Score: ${this.score}`).setFontSize(12)
+        this.game.events.on(EVENTS.KILL, () => {
+            console.log('catch KILL')
+            this.score++;
+            this.scoreBoard.text = `Score: ${this.score}`
+        })
+
+        this.health = 5;
+        this.healthBoard = new Text(this, 210, 32, `Health: ${this.health}`).setFontSize(12)
+        this.game.events.on(EVENTS.DAMAGE, () => {
+            console.log('catch DAMAGE')
+            this.cameras.main.flash();
+            this.health--;
+            this.healthBoard.text = `Health: ${this.health}`
+            if(this.health <= 0) {
+                this.endGame(GAMESTATUS.GAMEOVER);
+            }
+
+        })
 
         this.drawContainer = this.add.container(208, 32, [])
 
@@ -131,6 +157,12 @@ export class UIScene extends Scene {
             this.commandBoard.addDrawenCard(card, index)
         })
 
+        let skip = this.add.image(160, 250, TEXTURES.SKIP).setOrigin(0).setInteractive()
+        skip.on(Phaser.Input.Events.POINTER_DOWN, () => {
+            this.cleanUpDrawCards()
+        })
+
+        this.drawContainer.add(skip)
     }
 
     private createCard(index: number, x: number, y: number): Card {
@@ -235,4 +267,33 @@ export class UIScene extends Scene {
 
         this.initListeners()
     }
+
+    private endGame(status: GAMESTATUS) {
+        this.cameras.main.setBackgroundColor("rgba(0,0,0,0.6)");
+        this.game.scene.pause("level-1-scene");
+        let gameEndPhrase = new Text(
+            this,
+            this.scene.get("level-1-scene").scale.width / 2,
+            this.scene.get("level-1-scene").scale.height * 0.4,
+            status === GAMESTATUS.GAMEOVER
+                ? `YOU DIED!\nCLICK TO RESTART`
+                : `YOU WON!\nCLICK TO RESTART`,
+        )
+            .setAlign("center")
+            .setColor(status === GAMESTATUS.GAMEOVER ? "#ff0000" : "#ffffff")
+            .setFontSize(24)
+            .setW(200)
+
+        gameEndPhrase.setPosition(
+            (this.scene.get("level-1-scene").scale.width / 2 - gameEndPhrase.width / 2) + 100,
+            this.scene.get("level-1-scene").scale.height * 0.4,
+        );
+
+        this.input.on("pointerdown", () => {
+            this.game.events.removeAllListeners()
+            this.scene.get("level-1-scene").scene.stop();
+            this.scene.start("level-1-scene");
+            this.scene.restart();
+        });
+    };
 }

@@ -12,6 +12,7 @@ export class LoadingScene extends Scene {
         this.load.image(TEXTURES.PLAYER, 'assets/player.png')
         this.load.image(TEXTURES.ENEMY, 'assets/enemy.png')
         this.load.image(TEXTURES.ATTACK, 'assets/attack.png')
+        this.load.image(TEXTURES.SKIP, 'assets/skip.png')
 
         this.load.spritesheet(TEXTURES.CHOOSE, 'assets/direction-arrows.png', {
             frameWidth: 40,

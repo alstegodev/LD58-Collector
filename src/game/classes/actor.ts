@@ -29,7 +29,6 @@ export class Actor extends Sprite {
             } else if(this.orientation === 3 && orientation === 0) {
                 end += Math.PI * 2
             }
-            console.log(start, end)
             await this.tweensAsync({
                 targets: this,
                 duration: 200,
@@ -45,33 +44,53 @@ export class Actor extends Sprite {
     }
 
     public async move(distance: number, direction: ORIENTATION = this.orientation, obstacles: Actor[] = []) {
-        let newCoordinates: {x: number, y: number} = {x: this.x, y: this.y}
-
+        let stepX = 0, stepY = 0;
         switch (direction) {
             case ORIENTATION.NORTH:
-                newCoordinates = {x: this.x, y: this.y - 16 * distance}
-                break;
+                stepY = -16; break;
             case ORIENTATION.SOUTH:
-                newCoordinates = {x: this.x, y: this.y + 16 * distance}
-                break;
+                stepY = 16; break;
             case ORIENTATION.EAST:
-                newCoordinates = {x: this.x + 16 * distance, y: this.y}
-                break;
+                stepX = 16; break;
             case ORIENTATION.WEST:
-                newCoordinates = {x: this.x - 16 * distance, y: this.y}
-                break;
+                stepX = -16; break;
         }
-        if(obstacles.length > 0) {
-            if(obstacles.some(obstacle => obstacle.x === newCoordinates.x && obstacle.y === newCoordinates.y)) {
-                return
+
+        const wallsLayer = (this.scene as any).wallsLayer as Phaser.Tilemaps.TilemapLayer | undefined;
+
+        let allowedSteps = 0;
+        let testX = this.x;
+        let testY = this.y;
+        for (let i = 0; i < distance; i++) {
+            const nx = testX + stepX;
+            const ny = testY + stepY;
+
+            if (wallsLayer) {
+                const tile = wallsLayer.getTileAtWorldXY(nx, ny);
+                if (tile && ((tile.properties && (tile.properties as any).obstacle === true) || (tile as any).collides === true)) {
+                    break;
+                }
             }
+
+            if (obstacles.length > 0) {
+                const blocked = obstacles.some(ob => ob !== this && ob.x === nx && ob.y === ny);
+                if (blocked) {
+                    break;
+                }
+            }
+
+            allowedSteps++;
+            testX = nx;
+            testY = ny;
         }
+
+        if (allowedSteps === 0) return;
 
         await this.tweensAsync({
             targets: this,
-            y: newCoordinates.y,
-            x: newCoordinates.x,
-            duration: 200,
+            x: testX,
+            y: testY,
+            duration: 200 * allowedSteps,
             repeat: 0,
             yoyo: false,
         })

@@ -12,7 +12,8 @@ export enum TEXTURES {
     CARDS = 'cards',
     COMMAND_BOARD = 'commandBoard',
     BIG_RED_BUTTON = 'bigRedButton',
-    CHOOSE = 'choose'
+    CHOOSE = 'choose',
+    SKIP = 'skip',
 }
 
 export enum EVENTS {
@@ -24,7 +25,15 @@ export enum EVENTS {
     FRONTAL_ATTACK = 'frontal_attack',
     TARGET_ATTACK = 'target_attack',
     CHAIN_ATTACK = 'chain_attack',
-    RANGE_ATTACK = 'range_attack'
+    RANGE_ATTACK = 'range_attack',
+    DAMAGE = 'damage',
+    KILL = 'kill'
+}
+
+export enum GAMESTATUS {
+    PLAYING = 'playing',
+    GAMEOVER = 'gameover',
+    WIN = 'win'
 }
 
 export type InteractionPossibility = {
