@@ -128,42 +128,55 @@ export class Level1 extends Scene {
                     };
 
                     const wantsToMove = (enemy: Enemy): MovePlan | null => {
-                        const xDiff = Math.abs(this.player.x - enemy.x);
-                        const yDiff = Math.abs(this.player.y - enemy.y);
+                        const dx = this.player.x - enemy.x;
+                        const dy = this.player.y - enemy.y;
+                        const xDiff = Math.abs(dx);
+                        const yDiff = Math.abs(dy);
 
                         // Skip adjacent enemies - they will be handled separately for attack
                         if (xDiff + yDiff <= 16) {
                             return null;
                         }
 
-                        let dir: ORIENTATION;
+                        // Build prioritized directions similar to improved enemy AI
+                        const primaryH = dx > 0 ? ORIENTATION.EAST : ORIENTATION.WEST;
+                        const secondaryH = dx > 0 ? ORIENTATION.WEST : ORIENTATION.EAST;
+                        const primaryV = dy > 0 ? ORIENTATION.SOUTH : ORIENTATION.NORTH;
+                        const secondaryV = dy > 0 ? ORIENTATION.NORTH : ORIENTATION.SOUTH;
+
+                        let candidates: ORIENTATION[];
                         if (xDiff > yDiff) {
-                            dir = (this.player.x > enemy.x) ? ORIENTATION.EAST : ORIENTATION.WEST;
+                            candidates = [primaryH, primaryV, secondaryV, secondaryH];
                         } else {
-                            dir = (this.player.y > enemy.y) ? ORIENTATION.SOUTH : ORIENTATION.NORTH;
+                            candidates = [primaryV, primaryH, secondaryH, secondaryV];
                         }
-                        const {dx, dy} = stepForDir(dir)!;
-                        const nx = enemy.x + dx;
-                        const ny = enemy.y + dy;
 
-                        // Block moving into player tile
-                        if (nx === this.player.x && ny === this.player.y) return null;
+                        for (const dir of candidates) {
+                            const step = stepForDir(dir)!;
+                            const nx = enemy.x + step.dx;
+                            const ny = enemy.y + step.dy;
 
-                        // Block walls
-                        if (walls) {
-                            const tile = walls.getTileAtWorldXY(nx, ny);
-                            if (tile && ((tile.properties && (tile.properties as any).obstacle === true) || (tile as any).collides === true)) {
-                                return null;
+                            // Block moving into player tile
+                            if (nx === this.player.x && ny === this.player.y) continue;
+
+                            // Block walls
+                            if (walls) {
+                                const tile = walls.getTileAtWorldXY(nx, ny);
+                                if (tile && ((tile.properties && (tile.properties as any).obstacle === true) || (tile as any).collides === true)) {
+                                    continue;
+                                }
                             }
+
+                            // Don't allow stepping into a currently occupied tile (conservative, avoids swaps)
+                            if (occupiedNow.has(`${nx},${ny}`)) continue;
+
+                            // Reserve if free
+                            if (reserved.has(`${nx},${ny}`)) continue;
+                            reserved.add(`${nx},${ny}`);
+                            return {enemy, dir, nx, ny};
                         }
 
-                        // Don't allow stepping into a currently occupied tile (conservative, avoids swaps)
-                        if (occupiedNow.has(`${nx},${ny}`)) return null;
-
-                        // Reserve if free
-                        if (reserved.has(`${nx},${ny}`)) return null;
-                        reserved.add(`${nx},${ny}`);
-                        return {enemy, dir, nx, ny};
+                        return null;
                     };
 
                     // First pass: decide moves

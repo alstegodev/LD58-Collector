@@ -16,6 +16,7 @@ export class LoadingScene extends Scene {
         this.load.image(TEXTURES.CLICKTOSTART, 'assets/clickToStart.png')
         this.load.image(TEXTURES.TITLE, 'assets/title.png')
         this.load.image(TEXTURES.TUTORIAL, 'assets/tutorial.png')
+        this.load.image(TEXTURES.TUTORIAL2, 'assets/tutorial2.png')
         this.load.image(TEXTURES.RESET, 'assets/reset.png')
         this.load.image(TEXTURES.HIDE, 'assets/hide.png')
 

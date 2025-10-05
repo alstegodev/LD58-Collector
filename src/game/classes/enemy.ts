@@ -20,26 +20,41 @@ export class Enemy extends Actor {
     }
 
     public async moveToTarget() {
-        const xDiff = Math.abs(this.target.x - this.x);
-        const yDiff = Math.abs(this.target.y - this.y);
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const xDiff = Math.abs(dx);
+        const yDiff = Math.abs(dy);
 
-        if(xDiff + yDiff <= 16) {
-            console.log('EMIT DAMAGE')
-            this.scene.game.events.emit(EVENTS.DAMAGE)
+        // If adjacent to the player, deal damage
+        if (xDiff + yDiff <= 16) {
+            this.scene.game.events.emit(EVENTS.DAMAGE);
             return;
         }
-        if(xDiff > yDiff) {
-            if(this.target.x > this.x) {
-                await this.move(1, ORIENTATION.EAST, this.enemyGroup);
-            } else {
-                await this.move(1, ORIENTATION.WEST, this.enemyGroup);
-            }
+
+        // Helper to try a move and return whether it actually moved
+        const tryMove = async (dir: ORIENTATION): Promise<boolean> => {
+            const ox = this.x, oy = this.y;
+            await this.move(1, dir, this.enemyGroup);
+            return this.x !== ox || this.y !== oy;
+        };
+
+        // Build a prioritized list of directions to try
+        const primaryH = dx > 0 ? ORIENTATION.EAST : ORIENTATION.WEST;
+        const secondaryH = dx > 0 ? ORIENTATION.WEST : ORIENTATION.EAST;
+        const primaryV = dy > 0 ? ORIENTATION.SOUTH : ORIENTATION.NORTH;
+        const secondaryV = dy > 0 ? ORIENTATION.NORTH : ORIENTATION.SOUTH;
+
+        // Prefer axis with greater distance, then the other axis,
+        // then perpendicular detours to help navigate around walls.
+        let candidates: ORIENTATION[];
+        if (xDiff > yDiff) {
+            candidates = [primaryH, primaryV, secondaryV, secondaryH];
         } else {
-            if(this.target.y > this.y) {
-                await this.move(1, ORIENTATION.SOUTH, this.enemyGroup);
-            } else {
-                await this.move(1, ORIENTATION.NORTH, this.enemyGroup);
-            }
+            candidates = [primaryV, primaryH, secondaryH, secondaryV];
+        }
+
+        for (const dir of candidates) {
+            if (await tryMove(dir)) return;
         }
     }
 

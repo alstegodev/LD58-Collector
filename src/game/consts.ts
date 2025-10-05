@@ -17,8 +17,10 @@ export enum TEXTURES {
     CLICKTOSTART = 'clickToStart',
     TITLE = 'title',
     TUTORIAL = 'tutorial',
+    TUTORIAL2 = 'tutorial2',
     RESET = 'reset',
     HIDE = 'hide',
+
 }
 
 export enum EVENTS {

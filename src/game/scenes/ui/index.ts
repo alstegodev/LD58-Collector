@@ -22,6 +22,8 @@ export class UIScene extends Scene {
     private drawContainer!: Phaser.GameObjects.Container;
     private cardTweens: Tween[]
 
+    private resetButton: Phaser.GameObjects.Image;
+
     constructor() {
         super('ui-scene');
     }
@@ -36,7 +38,7 @@ export class UIScene extends Scene {
         this.cardTweens = []
 
         this.score = 0;
-        this.scoreBoard = new Text(this, 550, 32, `Score: ${this.score}/${gameConfig.winScore}`).setFontSize(12)
+        this.scoreBoard = new Text(this, 538, 32, `Score: ${this.score}/${gameConfig.winScore}`).setFontSize(12)
         this.game.events.on(EVENTS.KILL, () => {
             console.log('catch KILL')
             this.score++;
@@ -60,8 +62,8 @@ export class UIScene extends Scene {
 
         })
 
-        let resetButton = this.add.sprite(620, 340, TEXTURES.RESET).setOrigin(0).setInteractive()
-        resetButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
+        this.resetButton = this.add.image(620, 340, TEXTURES.RESET).setOrigin(0).setInteractive()
+        this.resetButton.on(Phaser.Input.Events.POINTER_DOWN, () => {
             this.restartGame()
         })
 
@@ -103,7 +105,7 @@ export class UIScene extends Scene {
     }
 
     private initListeners() {
-
+        console.log('BIG RED BUTTON')
         this.bigRedButton.anims.play(TEXTURES.BIG_RED_BUTTON)
 
         this.tweens.add({
@@ -324,6 +326,8 @@ export class UIScene extends Scene {
     }
 
     private endGame(status: GAMESTATUS) {
+        this.resetButton.destroy()
+
         this.cameras.main.setBackgroundColor("rgba(0,0,0,0.6)");
         this.game.scene.pause("level-1-scene");
         let gameEndPhrase = new Text(
@@ -351,7 +355,6 @@ export class UIScene extends Scene {
 
     private restartGame() {
         this.game.events.removeAllListeners()
-        this.scene.
 
         this.scene.get("level-1-scene").scene.stop();
         this.scene.start("level-1-scene");

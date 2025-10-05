@@ -7,7 +7,7 @@ export class Text extends GameObjects.Text {
             color: "#fff",
             stroke: "#000",
             strokeThickness: 4,
-            wordWrap: { width: 200, useAdvancedWrap: true }
+            wordWrap: {width: 200, useAdvancedWrap: true}
         });
         this.setOrigin(0, 0);
         scene.add.existing(this);
