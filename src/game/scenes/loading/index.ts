@@ -10,6 +10,13 @@ export class LoadingScene extends Scene {
 
         this.load.image(TEXTURES.COMMAND_BOARD, 'assets/commandBoard.png')
         this.load.image(TEXTURES.PLAYER, 'assets/player.png')
+        this.load.image(TEXTURES.ENEMY, 'assets/enemy.png')
+        this.load.image(TEXTURES.ATTACK, 'assets/attack.png')
+
+        this.load.spritesheet(TEXTURES.CHOOSE, 'assets/direction-arrows.png', {
+            frameWidth: 40,
+            frameHeight: 40,
+        })
 
         this.load.spritesheet(TEXTURES.CARDS, 'assets/cards.png', {
             frameWidth: 96,
@@ -23,10 +30,10 @@ export class LoadingScene extends Scene {
 
         this.load.image({
             key: 'tiles',
-            url: 'assets/grass2.png'
+            url: 'assets/tileset.png'
         })
-        this.load.tilemapTiledJSON('dungeon', 'assets/Tilemaps/grass.json')
-        this.load.spritesheet('tiles_spr', 'assets/grass2.png', {
+        this.load.tilemapTiledJSON('dungeon', 'assets/Tilemaps/map.json')
+        this.load.spritesheet('tiles_spr', 'assets/tileset.png', {
             frameWidth: 16,
             frameHeight: 16
         })

@@ -49,7 +49,7 @@ export const Cards: CardData[] = [
         color: 'blue',
         exec: (power: number) => {
             return async (player: Player) => {
-                await player.move(power)
+                await player.movePlayer(power)
             }
         }
     },
@@ -80,8 +80,8 @@ export const Cards: CardData[] = [
         color: 'red',
         exec: (power: number) => {
             return async (player: Player) => {
-                await player.move(power)
-                await player.attack([[0, 1], [0, -1]])
+                await player.movePlayer(power)
+                await player.attack([[1, 0], [-1, 0]])
             }
         }
     },
@@ -102,9 +102,10 @@ export const Cards: CardData[] = [
         exec: (power: number) => {
             return async (player: Player) => {
                 let targets = [
-                    [[1, 0], [2, 0]],
-                    [[1, 0], [2, 0], [2, 1], [2, -1]],
-                    [[1, 0], [2, 0], [2, 1], [2, -1], [3, 0], [3, 1], [3, -1] ]
+                    [],
+                    [[0, 1], [0, 2]],
+                    [[0, 1], [0, 2], [1, 2], [-1, 2]],
+                    [[0, 1], [0, 2], [1, 2], [-1, 2], [0, 3], [1, 3], [-1, 3]]
                 ]
 
                 await player.attack(targets[power])
@@ -117,8 +118,9 @@ export const Cards: CardData[] = [
         color: 'yellow',
         exec: (power: number) => {
             return async (player: Player) => {
-            await player.move(2*power)
-        }}
+                await player.movePlayer(2 * power)
+            }
+        }
     },
     {
         name: 'cyclotron',
@@ -126,9 +128,10 @@ export const Cards: CardData[] = [
         color: 'yellow',
         exec: (power: number) => {
             return async (player: Player) => {
-            await player.selectRotation(power)
-            await player.attack([[1, 1], [-1, -1], [1, -1], [-1, 1]])
-        }}
+                await player.selectRotation(power)
+                await player.attack([[1, 1], [-1, -1], [1, -1], [-1, 1]])
+            }
+        }
     },
     {
         name: 'chainlightning',
@@ -136,7 +139,8 @@ export const Cards: CardData[] = [
         color: 'yellow',
         exec: (power: number) => {
             return async (player: Player) => {
-            await player.chainAttack(3 + (2 * power))
-        }}
+                await player.chainAttack(3 + (2 * power))
+            }
+        }
     },
 ] as const

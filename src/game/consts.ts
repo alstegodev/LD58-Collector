@@ -7,9 +7,12 @@ export enum ORIENTATION {
 
 export enum TEXTURES {
     PLAYER = 'player',
+    ENEMY = 'enemy',
+    ATTACK = 'attack',
     CARDS = 'cards',
     COMMAND_BOARD = 'commandBoard',
     BIG_RED_BUTTON = 'bigRedButton',
+    CHOOSE = 'choose'
 }
 
 export enum EVENTS {
@@ -17,6 +20,11 @@ export enum EVENTS {
     GET_USER_INPUT = 'get_user_input',
     USER_CHOICE_MADE = 'user_choice_made',
     ALL_COMMANDS_EXECUTED = 'all_commands_executed',
+    PLAYER_ATTACK = 'player_attack',
+    FRONTAL_ATTACK = 'frontal_attack',
+    TARGET_ATTACK = 'target_attack',
+    CHAIN_ATTACK = 'chain_attack',
+    RANGE_ATTACK = 'range_attack'
 }
 
 export type InteractionPossibility = {

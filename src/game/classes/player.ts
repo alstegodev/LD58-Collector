@@ -1,5 +1,6 @@
 import {Actor} from "./actor.ts";
 import {EVENTS, getUserInputPayload, ORIENTATION, TEXTURES} from "../consts.ts";
+import {sleep} from "../helper.ts";
 
 export class Player extends Actor {
 
@@ -46,30 +47,37 @@ export class Player extends Actor {
             if (result instanceof Promise) {
                 await result;
             }
+            await sleep(200)
         }
+    }
 
-        this.scene.game.events.emit(EVENTS.ALL_COMMANDS_EXECUTED)
+
+
+    public async movePlayer(distance: number) {
+        this.attackMove(distance, this.orientation);
+        await this.move(distance)
     }
 
     public async selectMove(distance: number): Promise<void> {
         return new Promise<void>((resolve) => {
             this.scene.game.events.emit(EVENTS.GET_USER_INPUT, {
-                3: {
+                [this.orientation]: {
                     texture: TEXTURES.PLAYER,
-                    value: 3,
+                    value: this.orientation,
                 },
-                0: {
+                [(this.orientation + 1) % 4]: {
                     texture: TEXTURES.PLAYER,
                     value: 0
                 },
-                1: {
+                [(4 + this.orientation - 1) % 4]: {
                     texture: TEXTURES.PLAYER,
                     value: 1
                 }
             })
 
             const handleUserChoice = async (choice: number) => {
-                console.log('Spieler wählte:', choice);
+                console.log('User choice: ', choice);
+                this.attackMove(distance, choice);
                 await this.move(distance, choice);
 
                 this.scene.game.events.off(EVENTS.USER_CHOICE_MADE, handleUserChoice);
@@ -97,13 +105,23 @@ export class Player extends Actor {
                     value: right
                 }
             }
-            if (distance == 2) {
+            if (distance >= 2) {
                 let behind = (this.orientation + 2) % 4;
                 payload = {
                     ...payload,
                     [behind]: {
                         texture: TEXTURES.PLAYER,
                         value: behind
+                    }
+                }
+            }
+            if(distance == 3) {
+                let infront = (this.orientation + 4) % 4;
+                payload = {
+                    ...payload,
+                    [infront]: {
+                        texture: TEXTURES.PLAYER,
+                        value: infront
                     }
                 }
             }
@@ -124,19 +142,86 @@ export class Player extends Actor {
     }
 
     public async selectAttack(range: number, targets: number): Promise<void> {
-        //
+        console.log('EMIT RANGE_ATTACK')
+        this.scene.game.events.emit(EVENTS.RANGE_ATTACK, range, targets);
     }
 
     public async attackFrontal(targets: number): Promise<void> {
-        //
+        console.log('EMIT FRONTAL_ATTACK')
+        this.scene.game.events.emit(EVENTS.FRONTAL_ATTACK, this.orientation, targets);
     }
 
     public async attack(targets: number[][]): Promise<void> {
-        //
+        console.log('EMIT TARGETED ATTACK')
+        this.scene.game.events.emit(EVENTS.TARGET_ATTACK, targets.map(target => {
+            let rotatedX: number, rotatedY: number;
+
+            switch (this.orientation) {
+                case ORIENTATION.NORTH:
+                    rotatedX = target[0];
+                    rotatedY = -target[1];
+                    break;
+                case ORIENTATION.EAST:
+                    rotatedX = target[1];
+                    rotatedY = target[0];
+                    break;
+                case ORIENTATION.SOUTH:
+                    rotatedX = -target[0];
+                    rotatedY = target[1];
+                    break;
+                case ORIENTATION.WEST:
+                    rotatedX = -target[1];
+                    rotatedY = -target[0];
+                    break;
+                default:
+                    rotatedX = target[0];
+                    rotatedY = target[1];
+            }
+
+            return {
+                x: (rotatedX * 16) + this.x,
+                y: (rotatedY * 16) + this.y
+            }
+        }))
     }
 
     public async chainAttack(jumps: number): Promise<void> {
-        //
+        console.log('EMIT CHAIN_ATTACK')
+        this.scene.game.events.emit(EVENTS.CHAIN_ATTACK, jumps);
+    }
+
+    private attackMove(distance: number, choice: ORIENTATION) {
+        let attack_Fields: { x: number, y: number }[] = []
+        for (let i = 1; i <= distance; i++) {
+            switch (choice) {
+                case ORIENTATION.NORTH:
+                    attack_Fields.push({
+                        x: this.x,
+                        y: this.y - 16 * i
+                    });
+                    break;
+                case ORIENTATION.SOUTH:
+                    attack_Fields.push({
+                        x: this.x,
+                        y: this.y + 16 * i
+                    });
+                    break;
+                case ORIENTATION.EAST:
+                    attack_Fields.push({
+                        x: this.x + 16 * i,
+                        y: this.y,
+                    });
+                    break;
+                case ORIENTATION.WEST:
+                    attack_Fields.push({
+                        x: this.x - 16 * i,
+                        y: this.y,
+                    });
+                    break;
+            }
+        }
+        console.log('Attack on coords: ', attack_Fields)
+        this.scene.game.events.emit(EVENTS.PLAYER_ATTACK, attack_Fields)
     }
 
 }

@@ -44,45 +44,37 @@ export class Actor extends Sprite {
         this.orientation = orientation;
     }
 
-    public async move(distance: number, direction: ORIENTATION = this.orientation) {
+    public async move(distance: number, direction: ORIENTATION = this.orientation, obstacles: Actor[] = []) {
+        let newCoordinates: {x: number, y: number} = {x: this.x, y: this.y}
+
         switch (direction) {
             case ORIENTATION.NORTH:
-                await this.tweensAsync({
-                    targets: this,
-                    y: this.y - 16 * distance,
-                    duration: 200,
-                    repeat: 0,
-                    yoyo: false,
-                })
+                newCoordinates = {x: this.x, y: this.y - 16 * distance}
                 break;
             case ORIENTATION.SOUTH:
-                await this.tweensAsync({
-                    targets: this,
-                    y: this.y + 16 * distance,
-                    duration: 200,
-                    repeat: 0,
-                    yoyo: false,
-                });
+                newCoordinates = {x: this.x, y: this.y + 16 * distance}
                 break;
             case ORIENTATION.EAST:
-                await this.tweensAsync({
-                    targets: this,
-                    x: this.x + 16 * distance,
-                    duration: 200,
-                    repeat: 0,
-                    yoyo: false,
-                });
+                newCoordinates = {x: this.x + 16 * distance, y: this.y}
                 break;
             case ORIENTATION.WEST:
-                await this.tweensAsync({
-                    targets: this,
-                    x: this.x - 16 * distance,
-                    duration: 200,
-                    repeat: 0,
-                    yoyo: false,
-                });
+                newCoordinates = {x: this.x - 16 * distance, y: this.y}
                 break;
         }
+        if(obstacles.length > 0) {
+            if(obstacles.some(obstacle => obstacle.x === newCoordinates.x && obstacle.y === newCoordinates.y)) {
+                return
+            }
+        }
+
+        await this.tweensAsync({
+            targets: this,
+            y: newCoordinates.y,
+            x: newCoordinates.x,
+            duration: 200,
+            repeat: 0,
+            yoyo: false,
+        })
     }
 
     protected getBody(): Body {
